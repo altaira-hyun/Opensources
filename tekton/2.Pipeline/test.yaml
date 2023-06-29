@@ -1,0 +1,129 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: full
+spec:
+
+  # Volumes
+  workspaces:
+    - name: source-workspace # Directory where application source is located. (REQUIRED)
+    - name: cache-workspace # Directory where cache is stored (OPTIONAL)
+
+  # ENV
+  params:
+   - name: APP_IMAGE
+     type: string
+     description: image URL to push
+
+   - name: GIT_URL
+     type: string
+     description: Git Repository
+   - name: GIT_SUBDIR
+     type: string
+     description: GIT SUB DIR
+   - name: GIT_BRANCH
+     type: string
+     description: GIT Branch
+   - name: GIT_COMMIT_MESSAGE
+     type: string
+     description: GIT commit message
+   - name: GIT_EMAIL
+     type: string
+     description: GIT user email
+   - name: GIT_USERNAME
+     type: string
+     description: GIT username
+
+   - name: BUILD_SUBDIR
+     type: string
+   - name: REPO_TYPE
+     type: string
+     description: ArgoCD Connect REPO Type
+
+
+  tasks:
+
+    # TASK 1
+    - name: check-out # This task fetches a repository from github, using the `git-clone` task you installed
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source-workspace
+      params:
+        - name: url
+          value: "$(params.GIT_URL)"
+        - name: subdirectory
+          value: "$(params.GIT_SUBDIR)"
+        - name: revistion
+          value: "$(params.GIT_BRANCH)"
+        - name: deleteExisting
+          value: "true"
+
+    # TASK 2        
+    - name: buildpacks # This task uses the `buildpacks` task to build the application
+      taskRef:
+        name: buildpacks
+      runAfter:
+        - check-out
+      workspaces:
+        - name: source
+          workspace: source-workspace
+        - name: cache
+          workspace: cache-workspace
+      params:
+        - name: APP_IMAGE
+          value: "$(params.APP_IMAGE):$(tasks.check-out.results.commit)"
+        - name: SOURCE_SUBPATH
+          value: "$(params.BUILD_SUBDIR)" # This is the path within the samples repo you want to build (OPTIONAL, default: "")
+        - name: BUILDER_IMAGE
+          value: paketobuildpacks/builder:base # This is the builder we want the task to use (REQUIRED)
+
+    # TASK 3
+    - name: buildpacks-results
+      runAfter:
+        - buildpacks
+      taskSpec:
+        steps:
+          - name: print
+            image: docker.io/library/bash:5.1.4@sha256:b208215a4655538be652b2769d82e576bc4d0a2bb132144c060efc5be8c3f5d6
+            script: |
+              #!/usr/bin/env bash
+              set -e
+              echo "Digest of created app image: $(params.DIGEST)"              
+        params:
+          - name: DIGEST
+      params:
+        - name: DIGEST
+          value: "$(tasks.buildpacks.results.APP_IMAGE_DIGEST)"
+
+    # TASK 4
+    - name: git-edit
+      taskRef:
+        name: git-edit
+      runAfter:
+        - buildpacks-results
+      params:
+        - name: repo-url
+          value: "$(params.GIT_URL)"
+        - name: repo-path
+          value: "$(params.BUILD_SUBDIR)"
+        - name: commit-message
+          value: "IMAGE : $(params.APP_IMAGE):$(tasks.check-out.results.commit)" 
+
+    # TASK 6
+    - name: argocd-connect-repo
+      taskRef:
+        name: argocd-task-connect-repo
+      runAfter:
+        - git-edit
+      params:
+        - name: repository-url
+          value: "$(params.GIT_URL)"
+        - name: repository-type
+          value: "$(params.REPO_TYPE)"
+        - name: repository-name
+          value: "$(params.BUILD_SUBDIR)"
+        - name: flags
+          value: --insecure
+    

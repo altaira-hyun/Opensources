@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bluegreen-ingress
+  namespace: default
+spec:
+  rules:
+  - host: bluegreen.tanzu-altair.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: nginx-sample-svc
+            port:
+              number: 8080
+        path: /green
+        pathType: Prefix
+      - backend:
+          service:
+            name: httpd-sample-svc                       
+            port:
+              number: 8080
+        path: /blue
+        pathType: Prefix

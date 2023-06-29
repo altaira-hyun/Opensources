@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-source
+  annotations:
+    kpack.io/git: http://gitlab.coinsik.net
+type: kubernetes.io/basic-auth
+stringData:
+  username: altair
+  password: Megazone00!

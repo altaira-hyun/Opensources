@@ -1,0 +1,11 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: client-springboot-listener
+spec:
+  serviceAccountName: eventlistener-serviceaccount
+  triggers:
+    - bindings:
+        - ref: client-springboot-binding
+      template:
+        ref: client-springboot-template

@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: git-test
+spec:
+  taskRef:
+    name: git-edit
+  params:
+    - name: git-url
+      value: https://github.com/altaira-hyun/spring-cloud.git
+    - name: commit-message
+      value: test  # 변경사항에 대한 커밋 메시지
+

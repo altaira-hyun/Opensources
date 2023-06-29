@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-edit
+spec:
+  workspaces:
+    - name: git-workspace
+  params:
+    - name: git-url
+      type: string
+      description: The URL of the Git repository to clone
+    - name: APP_IMAGE
+      type: string
+    - name: COMMIT_TAG
+      type: string
+    - name: MANIFEST_DIR
+      type: string
+    - name: APP_MANIFEST_DIR
+      type: string
+    - name: GIT_REPO_NAME
+      type: string
+    - name: GIT_BRANCH
+      type: string
+    - name: GIT_EMAIL
+      type: string
+    - name: GIT_USERNAME
+      type: string
+
+  steps:
+    - name: git-pull-step
+      image: alpine/git
+      workingDir: "$(workspaces.git-workspace.path)"
+      script: |
+        pwd 
+        git config --global init.defaultBranch "$(params.GIT_BRANCH)"
+        git init
+        git remote add origin "$(params.git-url)"
+        git pull origin "$(params.GIT_BRANCH)"
+        ls -arlt 
+    - name: git-config-step
+      workingDir: "$(workspaces.git-workspace.path)/$(params.MANIFEST_DIR)"
+      image: alpine/git
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        echo "This DIR"
+        pwd
+        echo "$(params.APP_IMAGE):$(params.COMMIT_TAG)"
+        echo "BEFORE"
+        cat "$(params.APP_MANIFEST_DIR)/deploy.yaml"
+        sed -i "s#$(params.APP_IMAGE).*#$(params.APP_IMAGE):$(params.COMMIT_TAG)#" $(params.APP_MANIFEST_DIR)/deploy.yaml
+        echo
+        echo "AFTER"
+        cat "$(params.APP_MANIFEST_DIR)/deploy.yaml"
+
+    - name: git-commit-step
+      workingDir: "$(workspaces.git-workspace.path)"
+      image: alpine/git
+      script: |
+        git config --global --add safe.directory "$(workspaces.git-workspace.path)"
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        git add .
+        git commit -m "IMAGE TAG : $(params.COMMIT_TAG)"
+    - name: git-push-step
+      workingDir: "$(workspaces.git-workspace.path)"
+      image: alpine/git
+      script: |
+        git config --global --add safe.directory "$(workspaces.git-workspace.path)"
+        git push origin "$(params.GIT_BRANCH)"
+

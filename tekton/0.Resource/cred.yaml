@@ -1,0 +1,1 @@
+kubectl create secret generic registry-credentials --from-file=.dockerconfigjson=config.json --type=kubernetes.io/dockerconfigjson

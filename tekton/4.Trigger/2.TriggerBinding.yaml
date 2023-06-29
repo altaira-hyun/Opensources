@@ -1,0 +1,10 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: client-springboot-binding
+spec:
+  params:
+    - name: giturl
+      value: $(body.repository.url)
+    - name: gitrevision
+      value: $(body.repository.master_branch)

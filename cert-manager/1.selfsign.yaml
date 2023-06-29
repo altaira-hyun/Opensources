@@ -1,0 +1,30 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: argocd-selfsigned-ca-issuer
+  namespace: argocd
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-ca
+  namespace: argocd
+spec:
+  commonName: Argocd CA
+  dnsNames:
+  - argocd_ca
+  duration: 87600h0m0s
+  isCA: true
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: argocd-selfsigned-ca-issuer
+  renewBefore: 360h0m0s
+  secretName: argocd-ca-key-pair
+  usages:
+  - server auth
+  - client auth
+

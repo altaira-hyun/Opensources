@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-clone-commit-push-task
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: The URL of the Git repository to clone
+    - name: commit-message
+      type: string
+      description: The commit message for the changes
+    - name: APP_IMAGE
+      type: string
+    - name: COMMIT_TAG
+      type: string
+    - name: MANIFEST_DIR
+      type: string
+  steps:
+    - name: git-clone-step
+      image: alpine/git
+      script: |
+        git clone $(params.git-url) /edit-workspace
+        ls -arlt /edit-workspace
+    - name: git-config-step
+      workingDir: /edit-workspace/manifest
+      image: alpine/git
+      script: |
+        ls -alrt
+        sed 's/$(params.APP_IMAGE):.*/$(params.APP_IMAGE):$(params.COMMIT_TAG)/' $(params.MANIFEST_DIR).deploy.yaml
+        echo HI > test.txt
+    - name: git-commit-step
+      workingDir: /edit-workspace/manifest
+      image: alpine/git
+      script: |
+        git add .
+        git commit -m "IMAGE TAG : $(params.COMMIT_TAG)"
+    - name: git-push-step
+      workingDir: /edit-workspace/manifest
+      image: alpine/git
+      script: |
+        git remote set-url origin $(params.git-url)
+        git push
+

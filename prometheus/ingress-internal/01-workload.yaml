@@ -1,0 +1,20 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-01-workload-internal-ingress
+  namespace: prometheus
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+spec:
+  rules:
+  - host: prometheus.01-workload.internal.tanzu
+    http:
+      paths:
+      - backend:
+          service:
+            name: prometheus-server
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

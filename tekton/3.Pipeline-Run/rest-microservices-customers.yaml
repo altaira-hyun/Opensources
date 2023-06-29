@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: rest-microservices-customers
+spec:
+  serviceAccountName: pipeline-account # Only needed if you set up authorization
+  pipelineRef:
+    name: full
+  workspaces:
+    - name: source-workspace
+      subPath: source
+      persistentVolumeClaim:
+        claimName: pipeline-pvc
+    - name: cache-workspace
+      subPath: cache
+      persistentVolumeClaim:
+        claimName: pipeline-pvc
+    - name: git-workspace
+      emptyDir: {}
+  params:
+    - name: APP_IMAGE
+      value: "altaira/rest-microservices-customers" # This defines the name of output image
+    - name: GIT_URL
+      value: "https://github.com/altaira-hyun/customers-stores.git"
+    - name: GIT_SUBDIR
+      value: ""
+    - name: GIT_BRANCH
+      value: "main"
+    - name: GIT_EMAIL
+      value: "altair@megazone.com"
+    - name: GIT_USERNAME
+      value: "altair"
+    - name: GIT_REPO_NAME
+      value: "customers-stores"
+    - name: BUILD_SUBDIR
+      value: "rest-microservices-customers"
+    - name: MANIFEST_DIR
+      value: "manifest"
+    - name: REPO_TYPE
+      value: "git"
+    - name: ENV_VARS
+      value: [BP_JVM_VERSION=11, BP_MAVEN_BUILD_ARGUMENTS=-Dmaven.test.skip=true clean package]

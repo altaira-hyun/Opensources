@@ -1,0 +1,35 @@
+### Cluster Overall ###
+
+# AWS Node Status
+kube_node_info{node=~"ip.+"}
+
+# Cluster MEM Usage
+sum (container_memory_working_set_bytes{id="/"})
+sum (machine_memory_bytes)
+
+# Cluster MEM Rate
+sum (container_memory_working_set_bytes{container!~""}) / sum (machine_memory_bytes) * 100
+
+# Cluster CPU Usage
+sum (rate (container_cpu_usage_seconds_total{id="/"}[1m]))
+sum (machine_cpu_cores)
+
+# Cluster CPU Rate
+sum (rate (container_cpu_usage_seconds_total{container!~""}[1m])) / sum (machine_cpu_cores) * 100
+
+# Cluster Filesystem Usage
+sum (container_fs_usage_bytes{device=~"/dev/root"})
+sum (container_fs_limit_bytes{device=~"/dev/root",id="/"})
+
+# Cluster Filesystem Rate
+sum (container_fs_usage_bytes{device="/dev/root"}) / sum (container_fs_limit_bytes{device="/dev/root"}) * 100
+
+# Network I/O pressure
+sum (rate (container_network_receive_bytes_total[1m]))
+- sum (rate (container_network_transmit_bytes_total[1m]))
+
+# Kubernetes Version
+label_values(kubernetes_build_info, git_version)
+
+# MHC
+kube_pod_status_ready{pod=~""}

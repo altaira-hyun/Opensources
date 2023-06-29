@@ -1,0 +1,28 @@
+apiVersion: kpack.io/v1alpha2
+kind: Image
+metadata:
+  name: petclinic-image-mz
+  namespace: default
+spec:
+  tag: harbor.03-workload.tanzu-altair.com/library/mz
+  serviceAccountName: kpack-harbor-sa
+  builder:
+    name: kpack-builder
+    kind: Builder
+  source:
+    git:
+      url: http://gitlab.coinsik.net/altair/pet-clinic.git
+      revision: main
+  build: # Optional
+    env:
+      - name: BP_JVM_VERSION
+        value: 17.*
+      - name: JAVA_TOOL_OPTIONS
+        value: "-Xmx4g -Xms4g"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 5G
+      requests:
+        cpu: 500m
+        memory: 2G

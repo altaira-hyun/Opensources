@@ -1,0 +1,15 @@
+apiVersion: kpack.io/v1alpha2
+kind: Image
+metadata:
+  name: tutorial-image
+spec:
+  serviceAccountName: kpack-account
+  builder:
+    name: kpack-builder
+    kind: Builder
+  tag: https://registry.altair-lab.com/kpack/api-gateway
+  source:
+    git:
+      url: https://github.com/altaira-hyun/spring-cloud.git
+      revision: main
+    subPath: gateway

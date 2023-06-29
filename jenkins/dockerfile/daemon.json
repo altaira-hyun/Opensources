@@ -1,0 +1,3 @@
+{
+  "insecure-registries" : [ "harbor.devops.tanzu-altair.com" ]
+}

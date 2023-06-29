@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-account
+secrets:
+  - name: registry-credentials
+  - name: github-cred
+
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-cred
+  annotations:
+    tekton.dev/git-0: https://github.com
+    tekton.dev/git-1: https://gitlab.com
+    tekton.dev/docker-0: https://gcr.io
+type: kubernetes.io/basic-auth
+stringData:
+  username: altaira_hyun@naver.com
+  password: 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
+    # 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
+    #

@@ -1,0 +1,12 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: grafana-httpproxy
+  namespace: grafana
+spec:
+  virtualhost:
+    fqdn: grafana.devops.tanzu-altair.com
+  routes:
+    - services:
+        - name: grafana
+          port: 80

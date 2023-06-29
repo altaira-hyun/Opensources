@@ -1,0 +1,12 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: prometheus-httpproxy
+  namespace: prometheus
+spec:
+  virtualhost:
+    fqdn: prometheus.devops.tanzu-altair.com
+  routes:
+    - services:
+        - name: prometheus-server
+          port: 80
